@@ -95,7 +95,7 @@
         <!-- ============================================== -->
         
         <!-- 1. Tombol Panel Kanan -->
-        <a-entity id="menu-trigger" position="1.5 0 -3.5" class="clickable"
+        <a-entity id="menu-trigger" position="1.35 0.4 -3.5" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleCommandPanels()"
                   animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
@@ -105,7 +105,7 @@
         </a-entity>
 
         <!-- 2. Tombol Mode Exploded View -->
-        <a-entity id="explode-trigger" position="-1.5 0 -3.5" class="clickable"
+        <a-entity id="explode-trigger" position="-1.35 0.4 -3.5" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleExplodeView()"
                   animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
@@ -151,7 +151,7 @@
                     
                 </a-entity>
 
-                <a-entity position="0 0.3 0.01">
+                <a-entity position="0 0.18 0.01">
                     <a-plane width="1.8" height="1.0" color="#185b9d" opacity="0.6" position="-1.5 0 0">
                         <a-entity geometry="primitive: plane; width: 1.9; height: 1.1" material="color: #00e5ff; opacity: 0.3; wireframe: true" position="0 0 -0.01"></a-entity>
                         <a-text value="LIVE RPM" font="exo2bold" color="#00e5ff" align="center" width="3" position="0 0.25 0.01"></a-text>
