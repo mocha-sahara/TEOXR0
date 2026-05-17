@@ -45,13 +45,13 @@
         <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 20" line="color: #00e5ff; opacity: 0.7"></a-entity>
 
         <!-- Objek Meja Bundar (Posisi Y turun ke -0.8, Z mundur ke -6, Skala 1.7) -->
-        <a-entity id="meja-bundar" position="0 -0.8 -6" scale="1.7 1.7 1.7"
+        <a-entity id="meja-bundar" position="0 -1 -9" scale="1.45 1.45 1.45"
                   obj-model="obj: #model-table" 
                   material="color: #111520; metalness: 0.4; roughness: 0.6">
         </a-entity>
 
         <!-- Digital Twin Motor (Posisi Y naik ke 2.2, Z mundur ke -6) -->
-        <a-entity id="motor-group" position="0 2.2 -6" scale="0.8 0.8 0.8" universal-rotate="speed: 1" spark-system="active: false">
+        <a-entity id="motor-group" position="0 2.5 -9" scale="0.8 0.8 0.8" universal-rotate="speed: 1" spark-system="active: false">
             <a-entity id="motor-stator" class="draggable" 
                       obj-model="obj: #model-stator" 
                       motor-material="mode: solid; color: #888888">
