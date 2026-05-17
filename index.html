@@ -4,70 +4,97 @@
     <meta charset="UTF-8">
     <title>TEO-XR Web - Command Center</title>
     
-    <!-- External Libraries -->
+    <!-- A-Frame & MQTT Library -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     
-    <!-- Memanggil CSS & JS Eksternal -->
+    <!-- CSS dan JavaScript Eksternal -->
     <link rel="stylesheet" href="style.css">
     <script src="app.js"></script>
 </head>
 <body>
-    <a-scene background="color: #010308" cursor="rayOrigin: mouse">
+    <!-- 
+      webxr="optionalFeatures: hand-tracking, local-floor;" wajib ada untuk Quest 3
+      system-monitor bertugas menghitung FPS
+    -->
+    <a-scene cursor="rayOrigin: mouse" webxr="optionalFeatures: hand-tracking, local-floor;" system-monitor>
         
+        <!-- ============================================== -->
+        <!-- ASSET MANAGEMENT                               -->
+        <!-- ============================================== -->
         <a-assets>
             <a-asset-item id="model-stator" src="stator.obj"></a-asset-item>
             <a-asset-item id="model-rotor" src="rotor.obj"></a-asset-item>
-            <!-- Asset Meja dan Motif Mega Mendung -->
             <a-asset-item id="model-table" src="bun.obj"></a-asset-item>
             <img id="tex-mendung" src="mendung.png">
+            <audio id="audio-motor" src="motor.m4a" preload="auto" loop></audio>
         </a-assets>
 
-        <!-- Lingkungan Grid Dasar -->
+        <!-- Latar Belakang: Hitam di Laptop, Menghilang (Tembus Pandang/MR) di Quest 3 -->
+        <a-sky color="#010308" hide-on-enter-ar></a-sky>
+
+        <!-- Lantai Grid -->
         <a-grid width="100" height="100" color="#00e5ff" rotation="-90 0 0" opacity="0.1"></a-grid>
         
-        <!-- Pencahayaan (Dilengkapi ID untuk efek Red Alert via JS) -->
+        <!-- Pencahayaan (ID dibutuhkan untuk efek Red Alert) -->
         <a-light id="ambient-light" type="ambient" color="#333"></a-light>
         <a-light id="point-light-1" type="point" intensity="2.0" color="#00e5ff" position="0 6 2"></a-light>
         <a-light id="point-light-2" type="point" intensity="1.0" color="#ff2a6d" position="0 2 -8"></a-light>
 
-        <!-- Kamera & Kursor (Mendeteksi class .clickable dan .draggable) -->
-        <a-entity position="0 1.6 0">
-            <a-camera look-controls wasd-controls smart-zoom>
+        <!-- ============================================== -->
+        <!-- VR CAMERA & HAND TRACKING RIG                  -->
+        <!-- ============================================== -->
+        <a-entity id="rig" position="0 0 0">
+            
+            <a-camera id="kamera-utama" position="0 1.6 0" look-controls wasd-controls smart-zoom>
+                <!-- Kursor Mouse (Disembunyikan otomatis saat masuk mode VR/AR) -->
                 <a-cursor color="#ff2a6d" raycaster="objects: .clickable, .draggable" 
-                          animation__click="property: scale; startEvents: click; easing: easeOutQuad; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1">
+                          animation__click="property: scale; startEvents: click; easing: easeOutQuad; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
+                          hide-on-enter-vr hide-on-enter-ar>
                 </a-cursor>
             </a-camera>
+
+            <!-- Controller Biasa (Sinar Laser Oculus) -->
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable, .draggable; far: 20" line="color: #ff2a6d; opacity: 0.7"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 20" line="color: #00e5ff; opacity: 0.7"></a-entity>
+
+            <!-- Pelacakan Tangan Murni Quest 3 (Tanpa Controller) -->
+            <a-entity hand-tracking-controls="hand: left"></a-entity>
+            <a-entity hand-tracking-controls="hand: right"></a-entity>
+
         </a-entity>
 
-        <!-- Kontrol Tangan VR -->
-        <a-entity laser-controls="hand: left" raycaster="objects: .clickable, .draggable; far: 20" line="color: #ff2a6d; opacity: 0.7"></a-entity>
-        <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 20" line="color: #00e5ff; opacity: 0.7"></a-entity>
-
-        <!-- Objek Meja Bundar (Posisi Y turun ke -0.8, Z mundur ke -6, Skala 1.7) -->
+        <!-- ============================================== -->
+        <!-- DIGITAL TWIN ENVIRONMENT                       -->
+        <!-- ============================================== -->
+        
+        <!-- Meja Penopang (bun.obj) -->
         <a-entity id="meja-bundar" position="0 -1 -10.2" scale="1.45 1.45 1.45"
                   obj-model="obj: #model-table" 
                   material="color: #111520; metalness: 0.4; roughness: 0.6">
         </a-entity>
 
-        <!-- Digital Twin Motor (Posisi Y naik ke 2.2, Z mundur ke -6) -->
-        <a-entity id="motor-group" position="0 2.5 -9" scale="0.8 0.8 0.8" universal-rotate="speed: 1" spark-system="active: false">
+        <!-- Motor DC (Dilengkapi Audio Spasial dan Efek Percikan Api) -->
+        <a-entity id="motor-group" position="0 2.5 -9" scale="0.8 0.8 0.8" universal-rotate="speed: 1" spark-system="active: false"
+                  sound="src: #audio-motor; loop: true; volume: 0; positional: true; refDistance: 3; maxDistance: 15;">
+            
             <a-entity id="motor-stator" class="draggable" 
                       obj-model="obj: #model-stator" 
-                      motor-material="mode: solid; color: #888888">
+                      solid-material="color: #888888">
             </a-entity>
+            
             <a-entity id="holo-rotor" class="draggable" 
                       position="0.7 0 0"
                       obj-model="obj: #model-rotor" 
-                      motor-material="mode: solid; color: #cccccc">
+                      solid-material="color: #cccccc">
             </a-entity>
         </a-entity>
 
         <!-- ============================================== -->
-        <!-- TOMBOL KONTROL UTAMA -->
+        <!-- KONTROL UTAMA (Tombol Melayang)                -->
         <!-- ============================================== -->
         
-        <!-- 1. Tombol Panel Kanan -->
+        <!-- Tombol Buka/Tutup Panel Dashboard -->
         <a-entity id="menu-trigger" position="2.5 1.2 -3.5" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleCommandPanels()"
@@ -77,17 +104,7 @@
             <a-text id="btn-text" value="OPEN COMMAND" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
         </a-entity>
 
-        <!-- 2. Tombol Efek Hologram (Tengah) -->
-        <a-entity id="visual-trigger" position="0 0.8 -3.0" class="clickable"
-                  geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
-                  onclick="toggleVisualMode()"
-                  animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
-                  animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
-            <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
-            <a-text id="visual-text" value="HOLO MODE" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
-        </a-entity>
-
-        <!-- 3. Tombol Exploded View Kiri -->
+        <!-- Tombol Mode Exploded View -->
         <a-entity id="explode-trigger" position="-2.5 1.2 -3.5" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleExplodeView()"
@@ -98,14 +115,16 @@
         </a-entity>
 
         <!-- ============================================== -->
-        <!-- UI PANELS (DCS DASHBOARD) -->
+        <!-- UI PANELS (DASHBOARD SCADA)                    -->
         <!-- ============================================== -->
         <a-entity id="panel-group" visible="false">
             
-            <!-- Cincin Animasi -->
+            <!-- Animasi Cincin Kosmik -->
             <a-entity position="0 2.5 -7" geometry="primitive: torus; radius: 4.5; radiusTubular: 0.02; segmentsTubular: 64" material="color: #00e5ff; opacity: 0.2; transparent: true; wireframe: true" animation="property: rotation; to: 0 0 360; loop: true; dur: 20000; easing: linear"></a-entity>
 
-            <!-- PANEL TENGAH (Status Utama) -->
+            <!-- --------------------------------------- -->
+            <!-- PANEL TENGAH (Status Utama & Monitor)   -->
+            <!-- --------------------------------------- -->
             <a-entity position="0 2.5 -6" scale="1.4 1.4 1.4" animation="property: position; to: 0 2.55 -6; dir: alternate; dur: 3500; loop: true; easing: easeInOutSine">
                 <a-entity geometry="primitive: plane; width: 6.4; height: 5.4" sci-fi-panel="width: 6.4; height: 5.4; diagonal: false" position="0 -0.5 -0.05"></a-entity>
                 <!-- Watermark Mega Mendung -->
@@ -115,9 +134,16 @@
                 <a-text value="TEO-XR TELECONTROL" font="exo2bold" color="#ffffff" align="left" width="6.5" position="-1.5 1.5 0.01"></a-text>
                 <a-text value="XR COMMAND CENTER" font="exo2bold" color="#00e5ff" align="left" width="4.5" position="-1.5 1.1 0.01"></a-text>
                 
-                <a-entity position="2.29 1.2 0.09">
+                <a-entity position="2.29 1.4 0.09">
                     <a-text value="SYSTEM STATUS" font="exo2bold" color="#a0aec0" align="center" width="3.5" position="0 0.2 0"></a-text>
                     <a-text id="xr-status" value="OFFLINE" font="exo2bold" color="#ff2a6d" align="center" width="5.5" position="0 -0.1 0"></a-text>
+                    
+                    <!-- VR FPS & Network Ping Monitor -->
+                    <a-text value="VR FPS" font="exo2bold" color="#888888" align="center" width="2.5" position="-1.2 -0.5 0"></a-text>
+                    <a-text id="xr-fps" value="0" font="monoid" color="#00e5ff" align="center" width="4" position="-1.2 -0.75 0"></a-text>
+
+                    <a-text value="NET PING" font="exo2bold" color="#888888" align="center" width="2.5" position="1.2 -0.5 0"></a-text>
+                    <a-text id="xr-ping" value="0 ms" font="monoid" color="#00e5ff" align="center" width="4" position="1.2 -0.75 0"></a-text>
                 </a-entity>
 
                 <a-entity position="0 0.4 0.01">
@@ -139,10 +165,11 @@
                 </a-entity>
             </a-entity>
 
-            <!-- PANEL KIRI (Mode & Tuning) -->
+            <!-- --------------------------------------- -->
+            <!-- PANEL KIRI (Mode & PID Tuning)          -->
+            <!-- --------------------------------------- -->
             <a-entity position="-8.5 2.5 -5.2" rotation="0 35 0" scale="1.3 1.3 1.3" animation="property: position; to: -8.5 2.55 -5.2; dir: alternate; dur: 3200; loop: true; easing: easeInOutSine">
                 <a-entity geometry="primitive: plane; width: 5.2; height: 5.8" sci-fi-panel="width: 5.2; height: 5.8; diagonal: true" position="0 -0.5 -0.05"></a-entity>
-                <!-- Watermark Mega Mendung -->
                 <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="5.2" height="5.8" opacity="0.15" transparent="true"></a-image>
                 
                 <a-entity position="-1.5 0 0.01">
@@ -182,10 +209,11 @@
                 </a-entity>
             </a-entity>
 
-            <!-- PANEL KANAN (Chart & Analisis PID) -->
+            <!-- --------------------------------------- -->
+            <!-- PANEL KANAN (Data Analytics & CSV Export)-->
+            <!-- --------------------------------------- -->
             <a-entity position="8.5 2.5 -5.2" rotation="0 -35 0" scale="1.3 1.3 1.3" animation="property: position; to: 8.5 2.55 -5.2; dir: alternate; dur: 3800; loop: true; easing: easeInOutSine">
                 <a-entity geometry="primitive: plane; width: 5.2; height: 5.8" sci-fi-panel="width: 5.2; height: 5.8; diagonal: true" position="0 -0.5 -0.05"></a-entity>
-                <!-- Watermark Mega Mendung -->
                 <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="5.2" height="5.8" opacity="0.15" transparent="true"></a-image>
                 
                 <a-text value="RESPONSE MATRIX" font="exo2bold" color="#00e5ff" align="center" width="5.5" position="0 1.8 0.01"></a-text>
@@ -204,6 +232,15 @@
                     <a-text value="SETTLING" font="exo2bold" color="#888888" align="center" width="2.5" position="1.5 0.2 0"></a-text>
                     <a-text id="xr-settle" value="0.0s" font="monoid" color="#4ba3d3" align="center" width="5" position="1.5 -0.15 0"></a-text>
                 </a-entity>
+
+                <!-- Tombol Download Laporan Data Log CSV -->
+                <a-entity id="btn-csv" geometry="primitive: box; depth: 0.05; height: 0.4; width: 3.2" material="color: #185b9d" onclick="exportCSV()" position="0 -2.8 0" class="clickable"
+                          animation__hover="property: scale; startEvents: mouseenter; to: 1.05 1.05 1.05; dur: 150"
+                          animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
+                    <a-entity geometry="primitive: box; width: 3.25; height: 0.45; depth: 0.06" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
+                    <a-text value="DOWNLOAD CSV" font="exo2bold" align="center" width="4.5" position="0 0 0.03" color="#ffffff"></a-text>
+                </a-entity>
+
             </a-entity>
 
         </a-entity>
