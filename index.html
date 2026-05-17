@@ -134,19 +134,18 @@
                 <a-text value="TEO-XR TELECONTROL" font="exo2bold" color="#ffffff" align="left" width="6.5" position="-1.5 1.5 0.01"></a-text>
                 <a-text value="XR COMMAND CENTER" font="exo2bold" color="#00e5ff" align="left" width="4.5" position="-1.5 1.1 0.01"></a-text>
                 
-              <!-- Status & Telemetri (Tersusun rapi vertikal di sisi kanan panel) -->
-                <a-entity position="2.29 1.1 0.09">
-                    <!-- Status Koneksi -->
-                    <a-text value="SYSTEM STATUS" font="exo2bold" color="#a0aec0" align="center" width="3.5" position="0 0.2 0"></a-text>
-                    <a-text id="xr-status" value="OFFLINE" font="exo2bold" color="#ff2a6d" align="center" width="5.5" position="0 -0.1 0"></a-text>
-                    
-                    <!-- VR FPS Monitor -->
-                    <a-text value="VR FPS" font="exo2bold" color="#888888" align="center" width="2.5" position="0 -0.7 0"></a-text>
-                    <a-text id="xr-fps" value="0" font="monoid" color="#00e5ff" align="center" width="4.5" position="0 -0.95 0"></a-text>
+                <a-entity position="2.29 0 0.09">
+                    <!-- VR FPS Monitor (Paling Atas) -->
+                    <a-text value="VR FPS" font="exo2bold" color="#888888" align="center" width="2.5" position="0 1.5 0"></a-text>
+                    <a-text id="xr-fps" value="0" font="monoid" color="#00e5ff" align="center" width="4.5" position="0 1.25 0"></a-text>
 
-                    <!-- Network Ping Monitor -->
-                    <a-text value="NET PING" font="exo2bold" color="#888888" align="center" width="2.5" position="0 -1.45 0"></a-text>
-                    <a-text id="xr-ping" value="0 ms" font="monoid" color="#00e5ff" align="center" width="4.5" position="0 -1.7 0"></a-text>
+                    <!-- Network Ping Monitor (Tengah) -->
+                    <a-text value="NET PING" font="exo2bold" color="#888888" align="center" width="2.5" position="0 0.8 0"></a-text>
+                    <a-text id="xr-ping" value="0 ms" font="monoid" color="#00e5ff" align="center" width="4.5" position="0 0.55 0"></a-text>
+
+                    <!-- Status Koneksi (Bawah) -->
+                    <a-text value="SYSTEM STATUS" font="exo2bold" color="#a0aec0" align="center" width="3.5" position="0 0.1 0"></a-text>
+                    <a-text id="xr-status" value="OFFLINE" font="exo2bold" color="#ff2a6d" align="center" width="5.5" position="0 -0.15 0"></a-text>
                 </a-entity>
 
                 <a-entity position="0 0.4 0.01">
