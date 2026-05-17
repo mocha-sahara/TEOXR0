@@ -446,8 +446,8 @@ window.toggleExplodeView = function() {
         bt.setAttribute('color', '#00e5ff');
     }
 
-    let targetStator = window.isExploded ? "-1.2 0 0" : "0 0 0";
-    let targetRotor = window.isExploded ? "1.2 0 0" : window.rotorOffsetX + " 0 0";
+    let targetStator = window.isExploded ? "2 0 0" : "0 0 0";
+    let targetRotor = window.isExploded ? "2 0 0" : window.rotorOffsetX + " 0 0";
     
     stator.setAttribute('animation', `property: position; to: ${targetStator}; dur: 800; easing: easeInOutQuad`);
     rotor.setAttribute('animation', `property: position; to: ${targetRotor}; dur: 800; easing: easeInOutQuad`);
