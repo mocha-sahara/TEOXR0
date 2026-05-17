@@ -94,8 +94,10 @@
         <!-- KONTROL UTAMA (Tombol Melayang)                -->
         <!-- ============================================== -->
         
-        <!-- Tombol Buka/Tutup Panel Dashboard -->
-        <a-entity id="menu-trigger" position="2.5 1.2 -3.5" class="clickable"
+        <!-- 1. Tombol Panel Kanan -->
+        <!-- X dari 2.5 digeser ke 1.5 (Mendekat ke tengah) -->
+        <!-- Y dari 1.2 diturunkan ke 0.8 (Agak ke bawah) -->
+        <a-entity id="menu-trigger" position="1.5 0.8 -3.5" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleCommandPanels()"
                   animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
@@ -104,8 +106,10 @@
             <a-text id="btn-text" value="OPEN COMMAND" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
         </a-entity>
 
-        <!-- Tombol Mode Exploded View -->
-        <a-entity id="explode-trigger" position="-2.5 1.2 -3.5" class="clickable"
+        <!-- 2. Tombol Mode Exploded View -->
+        <!-- X dari -2.5 digeser ke -1.5 (Mendekat ke tengah) -->
+        <!-- Y dari 1.2 diturunkan ke 0.8 (Agak ke bawah) -->
+        <a-entity id="explode-trigger" position="-1.5 0.8 -3.5" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleExplodeView()"
                   animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
@@ -130,7 +134,7 @@
                 <!-- Watermark Mega Mendung -->
                 <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="6.4" height="5.4" opacity="0.15" transparent="true"></a-image>
                 
-                <a-image src="logo.png" position="-2.4 1.2 0.1" width="1.1" height="1.1" animation="property: scale; dir: alternate; dur: 2000; to: 1.05 1.05 1; loop: true"></a-image>
+                <a-image src="logo.png" position="-2.4 1.4 0.1" width="1" height="1" animation="property: scale; dir: alternate; dur: 2000; to: 1.05 1.05 1; loop: true"></a-image>
                 <a-text value="TEO-XR TELECONTROL" font="exo2bold" color="#ffffff" align="left" width="6.5" position="-1.5 1.5 0.01"></a-text>
                 <a-text value="XR COMMAND CENTER" font="exo2bold" color="#00e5ff" align="left" width="4.5" position="-1.5 1.1 0.01"></a-text>
                 
@@ -138,11 +142,11 @@
                 <a-entity position="2.29 1.2 0.09">
                     
                     <!-- VR FPS (Kiri Atas) -->
-                    <a-text value="VR FPS" font="exo2bold" color="#888888" align="center" width="2.2" position="-0.75 0.8 0"></a-text>
+                    <a-text value="VR FPS" font="exo2bold" color="#888888" align="center" width="2.2" position="-0.50 0.8 0"></a-text>
                     <a-text id="xr-fps" value="0" font="monoid" color="#00e5ff" align="center" width="4" position="-0.75 0.55 0"></a-text>
 
                     <!-- NET PING (Kanan Atas) -->
-                    <a-text value="NET PING" font="exo2bold" color="#888888" align="center" width="2.2" position="0.75 0.8 0"></a-text>
+                    <a-text value="NET PING" font="exo2bold" color="#888888" align="center" width="2.2" position="0.5 0.8 0"></a-text>
                     <a-text id="xr-ping" value="0 ms" font="monoid" color="#00e5ff" align="center" width="4" position="0.75 0.55 0"></a-text>
 
                     <!-- SYSTEM STATUS (Posisi Awal di Bawah FPS/Ping) -->
