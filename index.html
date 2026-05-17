@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>TEO-XR Web - Command Center</title>
+    
+    <!-- External Libraries -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    
+    <!-- Memanggil CSS & JS Eksternal -->
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
+</head>
+<body>
+    <a-scene background="color: #010308" cursor="rayOrigin: mouse">
+        
+        <a-assets>
+            <a-asset-item id="model-stator" src="stator.obj"></a-asset-item>
+            <a-asset-item id="model-rotor" src="rotor.obj"></a-asset-item>
+            <!-- Asset Meja dan Motif Mega Mendung -->
+            <a-asset-item id="model-table" src="bun.obj"></a-asset-item>
+            <img id="tex-mendung" src="mendung.png">
+        </a-assets>
+
+        <!-- Lingkungan Grid Dasar -->
+        <a-grid width="100" height="100" color="#00e5ff" rotation="-90 0 0" opacity="0.1"></a-grid>
+        
+        <!-- Pencahayaan (Dilengkapi ID untuk efek Red Alert via JS) -->
+        <a-light id="ambient-light" type="ambient" color="#333"></a-light>
+        <a-light id="point-light-1" type="point" intensity="2.0" color="#00e5ff" position="0 6 2"></a-light>
+        <a-light id="point-light-2" type="point" intensity="1.0" color="#ff2a6d" position="0 2 -8"></a-light>
+
+        <!-- Kamera & Kursor (Mendeteksi class .clickable dan .draggable) -->
+        <a-entity position="0 1.6 0">
+            <a-camera look-controls wasd-controls smart-zoom>
+                <a-cursor color="#ff2a6d" raycaster="objects: .clickable, .draggable" 
+                          animation__click="property: scale; startEvents: click; easing: easeOutQuad; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1">
+                </a-cursor>
+            </a-camera>
+        </a-entity>
+
+        <!-- Kontrol Tangan VR -->
+        <a-entity laser-controls="hand: left" raycaster="objects: .clickable, .draggable; far: 20" line="color: #ff2a6d; opacity: 0.7"></a-entity>
+        <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 20" line="color: #00e5ff; opacity: 0.7"></a-entity>
+
+        <!-- Objek Meja Bundar -->
+        <a-entity id="meja-bundar" position="0 0 -4" 
+                  obj-model="obj: #model-table" 
+                  material="color: #111520; metalness: 0.4; roughness: 0.6">
+        </a-entity>
+
+        <!-- Digital Twin Motor -->
+        <a-entity id="motor-group" position="0 1.6 -4" scale="0.8 0.8 0.8" universal-rotate="speed: 1" spark-system="active: false">
+            <a-entity id="motor-stator" class="draggable" 
+                      obj-model="obj: #model-stator" 
+                      motor-material="mode: solid; color: #888888">
+            </a-entity>
+            <a-entity id="holo-rotor" class="draggable" 
+                      position="0.7 0 0"
+                      obj-model="obj: #model-rotor" 
+                      motor-material="mode: solid; color: #cccccc">
+            </a-entity>
+        </a-entity>
+
+        <!-- ============================================== -->
+        <!-- TOMBOL KONTROL UTAMA -->
+        <!-- ============================================== -->
+        
+        <!-- 1. Tombol Panel Kanan -->
+        <a-entity id="menu-trigger" position="2.5 1.2 -3.5" class="clickable"
+                  geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
+                  onclick="toggleCommandPanels()"
+                  animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
+            <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
+            <a-text id="btn-text" value="OPEN COMMAND" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
+        </a-entity>
+
+        <!-- 2. Tombol Efek Hologram (Tengah) -->
+        <a-entity id="visual-trigger" position="0 0.8 -3.0" class="clickable"
+                  geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
+                  onclick="toggleVisualMode()"
+                  animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
+            <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
+            <a-text id="visual-text" value="HOLO MODE" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
+        </a-entity>
+
+        <!-- 3. Tombol Exploded View Kiri -->
+        <a-entity id="explode-trigger" position="-2.5 1.2 -3.5" class="clickable"
+                  geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
+                  onclick="toggleExplodeView()"
+                  animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
+            <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
+            <a-text id="explode-text" value="EXPLODED VIEW" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
+        </a-entity>
+
+        <!-- ============================================== -->
+        <!-- UI PANELS (DCS DASHBOARD) -->
+        <!-- ============================================== -->
+        <a-entity id="panel-group" visible="false">
+            
+            <!-- Cincin Animasi -->
+            <a-entity position="0 2.5 -7" geometry="primitive: torus; radius: 4.5; radiusTubular: 0.02; segmentsTubular: 64" material="color: #00e5ff; opacity: 0.2; transparent: true; wireframe: true" animation="property: rotation; to: 0 0 360; loop: true; dur: 20000; easing: linear"></a-entity>
+
+            <!-- PANEL TENGAH (Status Utama) -->
+            <a-entity position="0 2.5 -6" scale="1.4 1.4 1.4" animation="property: position; to: 0 2.55 -6; dir: alternate; dur: 3500; loop: true; easing: easeInOutSine">
+                <a-entity geometry="primitive: plane; width: 6.4; height: 5.4" sci-fi-panel="width: 6.4; height: 5.4; diagonal: false" position="0 -0.5 -0.05"></a-entity>
+                <!-- Watermark Mega Mendung -->
+                <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="6.4" height="5.4" opacity="0.15" transparent="true"></a-image>
+                
+                <a-image src="logo.png" position="-2.4 1.2 0.1" width="1.1" height="1.1" animation="property: scale; dir: alternate; dur: 2000; to: 1.05 1.05 1; loop: true"></a-image>
+                <a-text value="TEO-XR TELECONTROL" font="exo2bold" color="#ffffff" align="left" width="6.5" position="-1.5 1.5 0.01"></a-text>
+                <a-text value="XR COMMAND CENTER" font="exo2bold" color="#00e5ff" align="left" width="4.5" position="-1.5 1.1 0.01"></a-text>
+                
+                <a-entity position="2.29 1.2 0.09">
+                    <a-text value="SYSTEM STATUS" font="exo2bold" color="#a0aec0" align="center" width="3.5" position="0 0.2 0"></a-text>
+                    <a-text id="xr-status" value="OFFLINE" font="exo2bold" color="#ff2a6d" align="center" width="5.5" position="0 -0.1 0"></a-text>
+                </a-entity>
+
+                <a-entity position="0 0.4 0.01">
+                    <a-plane width="1.8" height="1.0" color="#185b9d" opacity="0.6" position="-1.5 0 0">
+                        <a-entity geometry="primitive: plane; width: 1.9; height: 1.1" material="color: #00e5ff; opacity: 0.3; wireframe: true" position="0 0 -0.01"></a-entity>
+                        <a-text value="LIVE RPM" font="exo2bold" color="#00e5ff" align="center" width="3" position="0 0.25 0.01"></a-text>
+                        <a-text id="xr-rpm" value="0.0" font="monoid" color="#ffffff" align="center" width="8" position="0 -0.15 0.01"></a-text>
+                    </a-plane>
+
+                    <a-plane width="1.8" height="1.0" color="#ff2a6d" opacity="0.2" position="1.5 0 0">
+                        <a-entity geometry="primitive: plane; width: 1.9; height: 1.1" material="color: #ff2a6d; opacity: 0.3; wireframe: true" position="0 0 -0.01"></a-entity>
+                        <a-text value="SYS ERROR" font="exo2bold" color="#ff2a6d" align="center" width="3" position="0 0.25 0.01"></a-text>
+                        <a-text id="xr-error" value="0.0" font="monoid" color="#ffffff" align="center" width="8" position="0 -0.15 0.01"></a-text>
+                    </a-plane>
+                </a-entity>
+
+                <a-entity position="0 -1.4 0.01">
+                    <a-entity xr-slider="topic: robot1/setpoint; label: TARGET RPM; min: 0; max: 200; value: 120; width: 4.6; step: 1"></a-entity>
+                </a-entity>
+            </a-entity>
+
+            <!-- PANEL KIRI (Mode & Tuning) -->
+            <a-entity position="-8.5 2.5 -5.2" rotation="0 35 0" scale="1.3 1.3 1.3" animation="property: position; to: -8.5 2.55 -5.2; dir: alternate; dur: 3200; loop: true; easing: easeInOutSine">
+                <a-entity geometry="primitive: plane; width: 5.2; height: 5.8" sci-fi-panel="width: 5.2; height: 5.8; diagonal: true" position="0 -0.5 -0.05"></a-entity>
+                <!-- Watermark Mega Mendung -->
+                <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="5.2" height="5.8" opacity="0.15" transparent="true"></a-image>
+                
+                <a-entity position="-1.5 0 0.01">
+                    <a-text value="KINEMATIC MODES" font="exo2bold" color="#00e5ff" align="center" width="3.5" position="0 1.8 0"></a-text>
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.4; width: 1.6" material="color: #ff2a6d" mqtt-button="topic: robot1/mode; payload: STOP" position="0 1.2 0" class="clickable">
+                        <a-text value="STOP" font="exo2bold" align="center" width="4.5" position="0 0 0.03" color="#ffffff"></a-text>
+                    </a-entity>
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.4; width: 1.6" material="color: #0a1128" mqtt-button="topic: robot1/mode; payload: PID" position="0 0.6 0" class="clickable">
+                        <a-text value="PID" font="exo2bold" align="center" width="4.5" position="0 0 0.03" color="#00e5ff"></a-text>
+                    </a-entity>
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.4; width: 1.6" material="color: #0a1128" mqtt-button="topic: robot1/mode; payload: MANUAL" position="0 0.0 0" class="clickable">
+                        <a-text value="MANUAL" font="exo2bold" align="center" width="4.5" position="0 0 0.03" color="#00e5ff"></a-text>
+                    </a-entity>
+                    
+                    <a-text value="DRIVE VECTOR" font="exo2bold" color="#00e5ff" align="center" width="3.5" position="0 -0.8 0"></a-text>
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.4; width: 1.6" material="color: #185b9d" mqtt-button="topic: robot1/direction; payload: FORWARD" position="0 -1.4 0" class="clickable">
+                        <a-text value="FORWARD" font="exo2bold" align="center" width="4.5" position="0 0 0.03" color="#ffffff"></a-text>
+                    </a-entity>
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.4; width: 1.6" material="color: #185b9d" mqtt-button="topic: robot1/direction; payload: BACKWARD" position="0 -2.0 0" class="clickable">
+                        <a-text value="BACKWARD" font="exo2bold" align="center" width="4.5" position="0 0 0.03" color="#ffffff"></a-text>
+                    </a-entity>
+                </a-entity>
+
+                <a-entity position="1.2 0 0.01">
+                    <a-text value="SYSTEM TUNING" font="exo2bold" color="#00e5ff" align="center" width="3.5" position="0 1.8 0"></a-text>
+                    <a-entity position="0 1.2 0" xr-slider="topic: robot1/pid/kp; label: Kp; min: 0; max: 50; value: 1.5; width: 1.8; isFloat: true; step: 0.1"></a-entity>
+                    <a-entity position="0 0.5 0" xr-slider="topic: robot1/pid/ki; label: Ki; min: 0; max: 10; value: 0.05; width: 1.8; isFloat: true; step: 0.01"></a-entity>
+                    <a-entity position="0 -0.2 0" xr-slider="topic: robot1/pid/kd; label: Kd; min: 0; max: 10; value: 0.1; width: 1.8; isFloat: true; step: 0.01"></a-entity>
+                    <a-entity position="0 -0.9 0" xr-slider="topic: robot1/manual_pwm; label: PWM; min: 0; max: 255; value: 0; width: 1.8; step: 1"></a-entity>
+
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.5; width: 2.4" material="color: #0a1128" mqtt-button="topic: robot1/config; payload: TRIGGER" position="0 -1.8 0" class="clickable">
+                        <a-text value="TRANSMIT DATA" font="exo2bold" align="center" width="3.5" position="0 0 0.03" color="#00e5ff"></a-text>
+                    </a-entity>
+                    <a-entity geometry="primitive: box; depth: 0.05; height: 0.5; width: 2.4" material="color: #4ba3d3" mqtt-button="isTest: true" position="0 -2.5 0" class="clickable">
+                        <a-text value="INIT STEP TEST" font="exo2bold" align="center" width="3.5" position="0 0 0.03" color="#ffffff"></a-text>
+                    </a-entity>
+                </a-entity>
+            </a-entity>
+
+            <!-- PANEL KANAN (Chart & Analisis PID) -->
+            <a-entity position="8.5 2.5 -5.2" rotation="0 -35 0" scale="1.3 1.3 1.3" animation="property: position; to: 8.5 2.55 -5.2; dir: alternate; dur: 3800; loop: true; easing: easeInOutSine">
+                <a-entity geometry="primitive: plane; width: 5.2; height: 5.8" sci-fi-panel="width: 5.2; height: 5.8; diagonal: true" position="0 -0.5 -0.05"></a-entity>
+                <!-- Watermark Mega Mendung -->
+                <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="5.2" height="5.8" opacity="0.15" transparent="true"></a-image>
+                
+                <a-text value="RESPONSE MATRIX" font="exo2bold" color="#00e5ff" align="center" width="5.5" position="0 1.8 0.01"></a-text>
+                <a-entity id="live-chart" geometry="primitive: plane; width: 4.6; height: 2.6" xr-chart position="0 0.2 0.01"></a-entity>
+                
+                <a-entity position="0 -1.8 0.01">
+                    <a-entity geometry="primitive: plane; width: 1.4; height: 0.8" material="color: #0a1128; opacity: 0.8" position="-1.5 0 -0.01"></a-entity>
+                    <a-text value="RISE TIME" font="exo2bold" color="#888888" align="center" width="2.5" position="-1.5 0.2 0"></a-text>
+                    <a-text id="xr-rise" value="0.0s" font="monoid" color="#00e5ff" align="center" width="5" position="-1.5 -0.15 0"></a-text>
+
+                    <a-entity geometry="primitive: plane; width: 1.4; height: 0.8" material="color: #0a1128; opacity: 0.8" position="0 0 -0.01"></a-entity>
+                    <a-text value="OVERSHOOT" font="exo2bold" color="#888888" align="center" width="2.5" position="0 0.2 0"></a-text>
+                    <a-text id="xr-over" value="0.0%" font="monoid" color="#ff2a6d" align="center" width="5" position="0 -0.15 0"></a-text>
+
+                    <a-entity geometry="primitive: plane; width: 1.4; height: 0.8" material="color: #0a1128; opacity: 0.8" position="1.5 0 -0.01"></a-entity>
+                    <a-text value="SETTLING" font="exo2bold" color="#888888" align="center" width="2.5" position="1.5 0.2 0"></a-text>
+                    <a-text id="xr-settle" value="0.0s" font="monoid" color="#4ba3d3" align="center" width="5" position="1.5 -0.15 0"></a-text>
+                </a-entity>
+            </a-entity>
+
+        </a-entity>
+    </a-scene>
+</body>
+</html>
