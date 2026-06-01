@@ -1,0 +1,12 @@
+{
+  "name": "TEO-XR Web - Command Center",
+  "description": "TEO-XR Web Command Center and Digital Twin telemetry interface",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

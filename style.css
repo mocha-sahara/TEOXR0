@@ -1,0 +1,156 @@
+/* ========================================================
+   TEO-XR STYLE SHEET
+   Mendukung Kanvas 3D (A-Frame) dan Overlay HTML 2D
+======================================================== */
+
+/* Import font Sci-Fi & Monospace dari Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;800&family=Fira+Code:wght@400;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+/* 
+  PENTING UNTUK WEBXR: 
+  Pastikan body dan html memenuhi layar 100% dan mematikan fungsi scroll.
+  Kalau tidak dimatikan, saat user men-drag motor, halamannya akan ikut tergeser.
+*/
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; 
+    background-color: #010308; /* Warna dasar layar sebelum 3D selesai di-load */
+    font-family: 'Exo 2', Tahoma, sans-serif;
+    color: #ffffff;
+}
+
+/* ========================================================
+   STYLING UNTUK OVERLAY HTML 2D (Layar Login / Notifikasi)
+======================================================== */
+
+/* Wadah transparan yang menutupi seluruh layar 3D */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100; /* Memastikan elemen 2D selalu di atas kanvas 3D */
+    
+    /* 
+      SANGAT PENTING: pointer-events: none membuat lapisan ini bisa "ditembus" oleh klik mouse,
+      sehingga kamu tetap bisa mengklik motor atau panel di dalam 3D.
+    */
+    pointer-events: none; 
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Panel Menu / Form Login */
+.scifi-panel-2d {
+    /* Kembalikan fungsi klik HANYA untuk panel ini */
+    pointer-events: auto; 
+    
+    background: rgba(10, 17, 40, 0.85); /* Biru dongker transparan */
+    border: 2px solid #00e5ff; /* Cyan neon */
+    border-radius: 8px;
+    padding: 40px;
+    width: 350px;
+    
+    /* Efek Glow & Kaca (Glassmorphism) */
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.2), inset 0 0 15px rgba(0, 229, 255, 0.1);
+    backdrop-filter: blur(8px);
+    
+    text-align: center;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.scifi-title {
+    color: #00e5ff;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 2px;
+    margin-top: 0;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+
+/* Input Form Bergaya Hacker / Industri */
+.scifi-input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #185b9d;
+    color: #00e5ff;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.scifi-input::placeholder {
+    color: #4ba3d3;
+    opacity: 0.5;
+}
+
+.scifi-input:focus {
+    border-color: #ff2a6d; /* Berubah Magenta saat diklik */
+    box-shadow: 0 0 15px rgba(255, 42, 109, 0.3);
+    color: #ffffff;
+}
+
+/* Tombol Aksi */
+.scifi-btn {
+    width: 100%;
+    background: transparent;
+    color: #00e5ff;
+    border: 2px solid #00e5ff;
+    padding: 12px;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+}
+
+.scifi-btn:hover {
+    background: #00e5ff;
+    color: #0a1128;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+}
+
+/* Tombol Berbahaya / Berhenti (Merah) */
+.scifi-btn-danger {
+    color: #ff2a6d;
+    border-color: #ff2a6d;
+}
+
+.scifi-btn-danger:hover {
+    background: #ff2a6d;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(255, 42, 109, 0.6);
+}
+
+/* Class pembantu untuk menyembunyikan elemen 2D (misal setelah berhasil login) */
+.hidden {
+    display: none !important;
+}
+
+/* Logo atau Branding Tambahan (Opsional di pojok layar) */
+.watermark-logo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    opacity: 0.5;
+    width: 120px;
+    pointer-events: none;
+}

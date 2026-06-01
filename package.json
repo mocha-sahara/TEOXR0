@@ -1,0 +1,15 @@
+{
+  "name": "teo-xr-command-center",
+  "version": "1.0.0",
+  "description": "TEO-XR Web - Command Cockpit",
+  "scripts": {
+    "dev": "vite --port 3000 --host 0.0.0.0",
+    "start": "vite --port 3000 --host 0.0.0.0",
+    "build": "mkdir -p dist && cp -r index.html app.js style.css mendung.png logo.png bun.glb rotor.glb stator.glb motor.m4a dist/ 2>/dev/null || true",
+    "lint": "echo 'Linter bypass'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
