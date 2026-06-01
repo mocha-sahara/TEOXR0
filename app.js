@@ -236,6 +236,32 @@ AFRAME.registerComponent('solid-material', {
     }
 });
 
+AFRAME.registerComponent('auto-center-yz', {
+    init: function () {
+        this.el.addEventListener('model-loaded', () => {
+            const model = this.el.getObject3D('mesh');
+            if (!model) return;
+            
+            // Perbarui matrix global model untuk kalkulasi bounding box yang presisi
+            model.updateMatrixWorld(true);
+            
+            const box = new THREE.Box3().setFromObject(model);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            
+            // Konversi dari koordinat dunia (world coordinates) ke koordinat lokal entity
+            const localCenter = this.el.object3D.worldToLocal(center.clone());
+            
+            // Geser model secara lokal pada sumbu Y dan Z agar sumbu putarnya 
+            // sejajar sempurna dengan sumbu lokal X (Y=0, Z=0) tanpa mempengaruhi pergeseran longitudinal X
+            model.position.y -= localCenter.y;
+            model.position.z -= localCenter.z;
+            
+            console.log(`[AutoCenterYZ] Meluruskan model ${this.el.id}: pergeseran Y sebesar ${-localCenter.y}, Z sebesar ${-localCenter.z}`);
+        });
+    }
+});
+
 AFRAME.registerComponent('spark-system', {
     schema: { active: {default: false} },
     init: function() {
@@ -780,9 +806,16 @@ function onMessageArrived(message) {
             window.updateHolographicHUD(data.speed, data.error, window.currentModeName || "LIVE");
         }
         
-        // Kinematika Rotasi Rotor
+        // Kinematika Rotasi Rotor (Direct Local Object3D Rotation)
         if (window.UI.holoRotor && window.UI.holoRotor.object3D) {
-            window.UI.holoRotor.object3D.rotateX(-data.speed * 0.005 * window.currentDirectionMultiplier); 
+            if (window.holoRotorAngle === undefined) {
+                window.holoRotorAngle = 0;
+            }
+            window.holoRotorAngle -= (data.speed * 0.005 * (window.currentDirectionMultiplier || 1));
+            // Rotasi murni pada sumbu lokal X
+            window.UI.holoRotor.object3D.rotation.x = window.holoRotorAngle;
+            window.UI.holoRotor.object3D.rotation.y = 0;
+            window.UI.holoRotor.object3D.rotation.z = 0;
         }
 
         // Dinamika Audio Spasial & Sintetis
