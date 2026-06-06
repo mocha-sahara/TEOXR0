@@ -76,20 +76,20 @@
         </a-entity>
 
         <!-- Motor DC (Dilengkapi Audio Spasial dan Efek Percikan Api) -->
-        <a-entity id="motor-group" position="0 2.5 -9" scale="0.8 0.8 0.8" universal-rotate="speed: 1" spark-system="active: false"
+        <a-entity id="motor-group" position="0 3.2 -9" scale="0.267 0.267 0.267" rotation="0 90 0" universal-rotate="speed: 1" spark-system="active: false"
                   sound="src: #audio-motor; loop: true; volume: 0; positional: true; refDistance: 3; maxDistance: 15;">
             
             <a-entity id="motor-stator" class="draggable" 
+                      position="0 0.4 0"
                       gltf-model="#model-stator" 
                       solid-material="color: #888888"
-                      auto-center-yz>
+                      auto-center-xy>
             </a-entity>
             
             <a-entity id="holo-rotor" class="draggable" 
-                      position="-0.24 0 0"
                       gltf-model="#model-rotor" 
                       solid-material="color: #cccccc"
-                      auto-center-yz>
+                      auto-center-xy>
             </a-entity>
 
             <!-- HIGH-IMMERSION ADDITIONAL SURPRISES (KINETIC FLUX FIELD & FLOATING HUD) -->
