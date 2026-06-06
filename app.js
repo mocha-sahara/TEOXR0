@@ -236,7 +236,7 @@ AFRAME.registerComponent('solid-material', {
     }
 });
 
-AFRAME.registerComponent('auto-center-yz', {
+AFRAME.registerComponent('auto-center-xy', {
     init: function () {
         this.el.addEventListener('model-loaded', () => {
             const model = this.el.getObject3D('mesh');
@@ -252,12 +252,12 @@ AFRAME.registerComponent('auto-center-yz', {
             // Konversi dari koordinat dunia (world coordinates) ke koordinat lokal entity
             const localCenter = this.el.object3D.worldToLocal(center.clone());
             
-            // Geser model secara lokal pada sumbu Y dan Z agar sumbu putarnya 
-            // sejajar sempurna dengan sumbu lokal X (Y=0, Z=0) tanpa mempengaruhi pergeseran longitudinal X
+            // Geser model secara lokal pada sumbu X dan Y agar sumbu putarnya 
+            // sejajar sempurna dengan sumbu lokal Z (X=0, Y=0) tanpa mempengaruhi pergeseran longitudinal Z
+            model.position.x -= localCenter.x;
             model.position.y -= localCenter.y;
-            model.position.z -= localCenter.z;
             
-            console.log(`[AutoCenterYZ] Meluruskan model ${this.el.id}: pergeseran Y sebesar ${-localCenter.y}, Z sebesar ${-localCenter.z}`);
+            console.log(`[AutoCenterXY] Meluruskan model ${this.el.id}: pergeseran X sebesar ${-localCenter.x}, Y sebesar ${-localCenter.y}`);
         });
     }
 });
@@ -681,8 +681,8 @@ window.toggleExplodeView = function() {
         bt.setAttribute('value', 'EXPLODED VIEW'); bt.setAttribute('color', '#00e5ff');
     }
 
-    let targetStator = window.isExploded ? "-2.2 0 0" : "0 0 0";
-    let targetRotor = window.isExploded ? "2.36 0 0" : "-0.24 0 0";
+    let targetStator = window.isExploded ? "0 0.4 -10.0" : "0 0.4 0";
+    let targetRotor = window.isExploded ? "0 0 10.0" : "0 0 0";
     
     window.UI.motorStator.setAttribute('animation', `property: position; to: ${targetStator}; dur: 800; easing: easeInOutQuad`);
     window.UI.holoRotor.setAttribute('animation', `property: position; to: ${targetRotor}; dur: 800; easing: easeInOutQuad`);
@@ -812,10 +812,10 @@ function onMessageArrived(message) {
                 window.holoRotorAngle = 0;
             }
             window.holoRotorAngle -= (data.speed * 0.005 * (window.currentDirectionMultiplier || 1));
-            // Rotasi murni pada sumbu lokal X
-            window.UI.holoRotor.object3D.rotation.x = window.holoRotorAngle;
+            // Rotasi murni pada sumbu lokal Z
+            window.UI.holoRotor.object3D.rotation.x = 0;
             window.UI.holoRotor.object3D.rotation.y = 0;
-            window.UI.holoRotor.object3D.rotation.z = 0;
+            window.UI.holoRotor.object3D.rotation.z = window.holoRotorAngle;
         }
 
         // Dinamika Audio Spasial & Sintetis
