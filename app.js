@@ -185,13 +185,69 @@ AFRAME.registerComponent('smart-zoom', {
 AFRAME.registerComponent('universal-rotate', {
     schema: { speed: { default: 1 } },
     init: function () {
-        this.isDragging = false; this.lastX = 0; this.lastY = 0;
-        this.el.addEventListener('mousedown', (e) => { this.isDragging = true; this.lastX = e.detail.mouseEvent ? e.detail.mouseEvent.clientX : e.clientX; this.lastY = e.detail.mouseEvent ? e.detail.mouseEvent.clientY : e.clientY; });
-        document.addEventListener('mouseup', () => { this.isDragging = false; });
-        document.addEventListener('mousemove', (e) => { if (!this.isDragging) return; let dx = e.clientX - this.lastX; let dy = e.clientY - this.lastY; this.rotateObject(dx, dy, 0.01); this.lastX = e.clientX; this.lastY = e.clientY; });
-        this.el.addEventListener('touchstart', (e) => { this.isDragging = true; this.lastX = e.touches[0].clientX; this.lastY = e.touches[0].clientY; });
-        document.addEventListener('touchend', () => { this.isDragging = false; });
-        document.addEventListener('touchmove', (e) => { if (!this.isDragging) return; let dx = e.touches[0].clientX - this.lastX; let dy = e.touches[0].clientY - this.lastY; this.rotateObject(dx, dy, 0.01); this.lastX = e.touches[0].clientX; this.lastY = e.touches[0].clientY; });
+        this.isDragging = false; 
+        this.lastX = 0; 
+        this.lastY = 0;
+        
+        const getCoords = (e) => {
+            let orig = (e.detail && e.detail.evt) ? e.detail.evt : e;
+            if (orig.touches && orig.touches.length > 0) {
+                return { x: orig.touches[0].clientX, y: orig.touches[0].clientY };
+            }
+            if (orig.changedTouches && orig.changedTouches.length > 0) {
+                return { x: orig.changedTouches[0].clientX, y: orig.changedTouches[0].clientY };
+            }
+            return { x: orig.clientX || 0, y: orig.clientY || 0 };
+        };
+
+        const camEl = document.getElementById('kamera-utama');
+
+        const startDrag = (e) => { 
+            this.isDragging = true; 
+            let coords = getCoords(e);
+            this.lastX = coords.x; 
+            this.lastY = coords.y;
+            if (camEl) {
+                camEl.setAttribute('look-controls', 'enabled', false);
+            }
+        };
+
+        this.el.addEventListener('mousedown', startDrag);
+        this.el.addEventListener('touchstart', startDrag);
+
+        const stopDrag = () => { 
+            if (this.isDragging) {
+                this.isDragging = false; 
+                if (camEl) {
+                    camEl.setAttribute('look-controls', 'enabled', true);
+                }
+            }
+        };
+
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+
+        document.addEventListener('mousemove', (e) => { 
+            if (!this.isDragging) return; 
+            let coords = getCoords(e);
+            let dx = coords.x - this.lastX; 
+            let dy = coords.y - this.lastY; 
+            this.rotateObject(dx, dy, 0.01); 
+            this.lastX = coords.x; 
+            this.lastY = coords.y; 
+        });
+
+        document.addEventListener('touchmove', (e) => { 
+            if (!this.isDragging) return; 
+            let coords = getCoords(e);
+            let dx = coords.x - this.lastX; 
+            let dy = coords.y - this.lastY; 
+            this.rotateObject(dx, dy, 0.01); 
+            this.lastX = coords.x; 
+            this.lastY = coords.y; 
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
+
         this.el.sceneEl.addEventListener('axismove', (e) => {
             let joyX = e.detail.axis[0]; let joyY = e.detail.axis[1];
             if (Math.abs(joyX) > 0.1 || Math.abs(joyY) > 0.1) { this.rotateObject(joyX, joyY, 0.05); }
@@ -199,6 +255,7 @@ AFRAME.registerComponent('universal-rotate', {
     },
     rotateObject: function(deltaX, deltaY, multiplier) {
         if (this.data.speed === 0) return; 
+        if (isNaN(deltaX) || isNaN(deltaY)) return;
         this.el.object3D.rotation.y += deltaX * multiplier * this.data.speed;
         this.el.object3D.rotation.x += deltaY * multiplier * this.data.speed;
     }
@@ -211,7 +268,7 @@ AFRAME.registerComponent('solid-material', {
     schema: { color: {type: 'color', default: '#888888'} },
     init: function () {
         this.materials = [];
-        this.el.addEventListener('model-loaded', () => {
+        const applyMaterial = () => {
             const obj = this.el.getObject3D('mesh');
             if (!obj) return;
             obj.traverse((node) => {
@@ -220,7 +277,12 @@ AFRAME.registerComponent('solid-material', {
                     node.material = mat; this.materials.push(mat);
                 }
             });
-        });
+        };
+        if (this.el.getObject3D('mesh')) {
+            applyMaterial();
+        } else {
+            this.el.addEventListener('model-loaded', applyMaterial);
+        }
     },
     update: function (oldData) {
         if (this.data.color !== oldData.color) {
@@ -238,27 +300,29 @@ AFRAME.registerComponent('solid-material', {
 
 AFRAME.registerComponent('auto-center-xy', {
     init: function () {
-        this.el.addEventListener('model-loaded', () => {
+        const centerModel = () => {
             const model = this.el.getObject3D('mesh');
             if (!model) return;
             
-            // Perbarui matrix global model untuk kalkulasi bounding box yang presisi
             model.updateMatrixWorld(true);
             
             const box = new THREE.Box3().setFromObject(model);
             const center = new THREE.Vector3();
             box.getCenter(center);
             
-            // Konversi dari koordinat dunia (world coordinates) ke koordinat lokal entity
             const localCenter = this.el.object3D.worldToLocal(center.clone());
             
-            // Geser model secara lokal pada sumbu X dan Y agar sumbu putarnya 
-            // sejajar sempurna dengan sumbu lokal Z (X=0, Y=0) tanpa mempengaruhi pergeseran longitudinal Z
             model.position.x -= localCenter.x;
             model.position.y -= localCenter.y;
             
             console.log(`[AutoCenterXY] Meluruskan model ${this.el.id}: pergeseran X sebesar ${-localCenter.x}, Y sebesar ${-localCenter.y}`);
-        });
+        };
+
+        if (this.el.getObject3D('mesh')) {
+            centerModel();
+        } else {
+            this.el.addEventListener('model-loaded', centerModel);
+        }
     }
 });
 
@@ -841,8 +905,8 @@ function onMessageArrived(message) {
                 window.UI.motorGroup.setAttribute('spark-system', 'active', false);
                 if (window.isRedAlert && window.UI.ambientLight) {
                     window.isRedAlert = false;
-                    window.UI.ambientLight.setAttribute('color', '#333');
-                    window.UI.ambientLight.removeAttribute('animation'); window.UI.ambientLight.setAttribute('intensity', '1'); 
+                    window.UI.ambientLight.setAttribute('color', '#222222');
+                    window.UI.ambientLight.removeAttribute('animation'); window.UI.ambientLight.setAttribute('intensity', '1.0'); 
                     window.UI.point1.setAttribute('color', '#00e5ff'); window.UI.point2.setAttribute('color', '#ff2a6d');
                 }
             }
