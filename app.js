@@ -983,4 +983,27 @@ document.addEventListener("DOMContentLoaded", function() {
     document.addEventListener("pointerdown", resumeAllAudio);
 });
 
+// Cari fungsi startDrag di app.js (di dalam komponen 'universal-rotate')
+const startDrag = (e) => { 
+    this.isDragging = true; 
+    let coords = getCoords(e);
+    this.lastX = coords.x; 
+    this.lastY = coords.y;
+    
+    // PERBAIKAN: Hanya matikan look-controls jika BUKAN di mode VR
+    if (camEl && !this.el.sceneEl.is('vr-mode')) {
+        camEl.setAttribute('look-controls', 'enabled', false);
+    }
+};
 
+// Jangan lupa sesuaikan juga di fungsi stopDrag:
+const stopDrag = () => { 
+    if (this.isDragging) {
+        this.isDragging = false; 
+        
+        // PERBAIKAN: Nyalakan kembali hanya jika BUKAN di mode VR
+        if (camEl && !this.el.sceneEl.is('vr-mode')) {
+            camEl.setAttribute('look-controls', 'enabled', true);
+        }
+    }
+};
