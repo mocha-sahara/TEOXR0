@@ -203,26 +203,34 @@ AFRAME.registerComponent('universal-rotate', {
         const camEl = document.getElementById('kamera-utama');
 
         const startDrag = (e) => { 
-            this.isDragging = true; 
-            let coords = getCoords(e);
-            this.lastX = coords.x; 
-            this.lastY = coords.y;
-            if (camEl) {
-                camEl.setAttribute('look-controls', 'enabled', false);
-            }
-        };
+    this.isDragging = true; 
+    let coords = getCoords(e);
+    this.lastX = coords.x; 
+    this.lastY = coords.y;
+    
+    // TAMBAHKAN CEK ar-mode
+    let isImmersive = this.el.sceneEl.is('vr-mode') || this.el.sceneEl.is('ar-mode');
+    if (camEl && !isImmersive) {
+        camEl.setAttribute('look-controls', 'enabled', false);
+    }
+};
+        
 
         this.el.addEventListener('mousedown', startDrag);
         this.el.addEventListener('touchstart', startDrag);
 
         const stopDrag = () => { 
-            if (this.isDragging) {
-                this.isDragging = false; 
-                if (camEl) {
-                    camEl.setAttribute('look-controls', 'enabled', true);
-                }
-            }
-        };
+    if (this.isDragging) {
+        this.isDragging = false; 
+        
+        // TAMBAHKAN CEK ar-mode JUGA DI SINI
+        let isImmersive = this.el.sceneEl.is('vr-mode') || this.el.sceneEl.is('ar-mode');
+        if (camEl && !isImmersive) {
+            camEl.setAttribute('look-controls', 'enabled', true);
+        }
+    }
+};
+        
 
         document.addEventListener('mouseup', stopDrag);
         document.addEventListener('touchend', stopDrag);
