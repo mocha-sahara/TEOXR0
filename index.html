@@ -69,14 +69,14 @@
         <!-- ============================================== -->
         
         <!-- Meja Penopang (bun.glb) -->
-        <a-entity id="meja-bundar" position="0 1 -10.2" scale="0.66 0.66 0.66"
+        <a-entity id="meja-bundar" position="0 0.2 -1.5" scale="0.66 0.66 0.66"
                   gltf-model="#model-table"  
                   material="color: #111520; metalness: 0.4; roughness: 0.6"
                   spatial-projection>
         </a-entity>
 
         <!-- Motor DC (Dilengkapi Audio Spasial dan Efek Percikan Api) -->
-        <a-entity id="motor-group" position="0 3.2 -9" scale="0.267 0.267 0.267" rotation="0 90 0" universal-rotate="speed: 1" spark-system="active: false"
+        <a-entity id="motor-group" position="0 1.6 -1.5" scale="0.267 0.267 0.267" rotation="0 90 0" universal-rotate="speed: 1" spark-system="active: false"
                   sound="src: #audio-motor; loop: true; volume: 0; positional: true; refDistance: 3; maxDistance: 15;">
             
             <a-entity id="motor-stator" class="draggable" 
@@ -131,7 +131,7 @@
         <!-- ============================================== -->
         
         <!-- 1. Tombol Panel Kanan -->
-        <a-entity id="menu-trigger" position="1.35 0.4 -3.5" class="clickable"
+        <a-entity id="menu-trigger" position="0.8 1.0 -1.2" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleCommandPanels()"
                   animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
@@ -141,7 +141,7 @@
         </a-entity>
 
         <!-- 2. Tombol Mode Exploded View -->
-        <a-entity id="explode-trigger" position="-1.35 0.4 -3.5" class="clickable"
+        <a-entity id="explode-trigger" position="-0.8 1.0 -1.2" class="clickable"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleExplodeView()"
                   animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
