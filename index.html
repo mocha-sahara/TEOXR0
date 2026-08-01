@@ -1,4 +1,124 @@
-<!-- ============================================== -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>TEO-XR Web - Command Center</title>
+    
+    <!-- A-Frame & MQTT Library -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    
+    <!-- CSS dan JavaScript Eksternal -->
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
+</head>
+<body>
+    <!-- Pelacakan ruang (Room-Scale 6-DoF) dipaksa nyala agar kamu bisa keliling objek -->
+    <a-scene cursor="rayOrigin: mouse" webxr="referenceSpaceType: local-floor; requiredFeatures: local-floor; optionalFeatures: hand-tracking;" system-monitor>
+        
+        <!-- ============================================== -->
+        <!-- ASSET MANAGEMENT                               -->
+        <!-- ============================================== -->
+        <a-assets>
+            <a-asset-item id="model-stator" src="stator.glb"></a-asset-item>
+            <a-asset-item id="model-rotor" src="rotor.glb"></a-asset-item>
+            <a-asset-item id="model-table" src="bun.glb"></a-asset-item>
+            <img id="tex-mendung" src="mendung.png">
+            <audio id="audio-motor" src="motor.m4a" preload="auto" loop></audio>
+        </a-assets>
+
+        <!-- Latar Belakang Tembus Pandang untuk MR Quest 3 -->
+        <a-sky color="#010308" hide-on-enter-ar></a-sky>
+
+        <a-grid width="100" height="100" color="#00e5ff" rotation="-90 0 0" opacity="0.1"></a-grid>
+        
+        <a-light id="ambient-light" type="ambient" color="#333"></a-light>
+        <a-light id="point-light-1" type="point" intensity="2.0" color="#00e5ff" position="0 3 1"></a-light>
+        <a-light id="point-light-2" type="point" intensity="1.0" color="#ff2a6d" position="0 1.5 -2"></a-light>
+
+        <!-- ============================================== -->
+        <!-- VR CAMERA & HAND TRACKING RIG                  -->
+        <!-- ============================================== -->
+        <a-entity id="rig" position="0 0 0">
+            <a-camera id="kamera-utama" position="0 1.6 0" look-controls wasd-controls smart-zoom>
+                <a-cursor color="#ff2a6d" raycaster="objects: .clickable, .draggable" 
+                          animation__click="property: scale; startEvents: click; easing: easeOutQuad; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
+                          hide-on-enter-vr>
+                </a-cursor>
+            </a-camera>
+
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable, .draggable; far: 5" line="color: #ff2a6d; opacity: 0.7"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 5" line="color: #00e5ff; opacity: 0.7"></a-entity>
+
+            <a-entity hand-tracking-controls="hand: left"></a-entity>
+            <a-entity hand-tracking-controls="hand: right"></a-entity>
+        </a-entity>
+
+        <!-- ============================================== -->
+        <!-- DIGITAL TWIN ENVIRONMENT (SKALA DIKECILKAN 5X) -->
+        <!-- ============================================== -->
+        
+        <!-- Meja: Skala dikecilkan ke 0.15, diletakkan 2 meter di depan -->
+        <a-entity id="meja-bundar" position="0 0.1 -2.0" scale="0.15 0.15 0.15"
+                  gltf-model="#model-table"  
+                  material="color: #111520; metalness: 0.4; roughness: 0.6"
+                  spatial-projection>
+        </a-entity>
+
+        <!-- Motor: Skala dikecilkan drastis ke 0.06 agar seukuran AC Motor asli di atas meja -->
+        <a-entity id="motor-group" position="0 0.7 -2.0" scale="0.06 0.06 0.06" rotation="0 90 0" universal-rotate="speed: 1" spark-system="active: false"
+                  sound="src: #audio-motor; loop: true; volume: 0; positional: true; refDistance: 1; maxDistance: 5;">
+            
+            <a-entity id="motor-stator" class="draggable" position="0 0.4 0" gltf-model="#model-stator" solid-material="color: #888888" auto-center-xy></a-entity>
+            <a-entity id="holo-rotor" class="draggable" gltf-model="#model-rotor" solid-material="color: #cccccc" auto-center-xy></a-entity>
+
+            <a-entity field-flux></a-entity>
+
+            <!-- Holographic HUD disesuaikan ukurannya agar tidak ikut mengecil parah -->
+            <a-entity id="holo-hud" position="0 5 3" rotation="0 0 0" scale="5 5 5">
+                <a-plane width="2.4" height="1.05" material="color: #030a16; opacity: 0.65; transparent: true; side: double"></a-plane>
+                <a-entity geometry="primitive: plane; width: 2.45; height: 1.1" material="color: #00e5ff; wireframe: true; opacity: 0.6; side: double"></a-entity>
+                
+                <a-entity geometry="primitive: box; width: 0.04; height: 1.15; depth: 0.04" material="color: #00e5ff; opacity: 0.8" position="-1.22 0 0"></a-entity>
+                <a-entity geometry="primitive: box; width: 0.04; height: 1.15; depth: 0.04" material="color: #00e5ff; opacity: 0.8" position="1.22 0 0"></a-entity>
+                
+                <a-entity id="hud-scan-line" geometry="primitive: box; width: 2.38; height: 0.015; depth: 0.015" material="color: #ff2a6d; emissive: #ff2a6d; emissiveIntensity: 2.5" position="0 0.48 0.01"
+                          animation="property: position; to: 0 -0.48 0.01; dir: alternate; dur: 1800; loop: true; easing: easeInOutSine"></a-entity>
+                          
+                <a-text value="ENGINE TELEMETRY HUD" font="exo2bold" color="#00e5ff" width="2.6" align="center" position="0 0.4 0.02"></a-text>
+                <a-text id="hud-rpm-label" value="SPEED: 0.0 RPM" font="monoid" color="#ffffff" width="2.8" align="left" position="-0.95 0.1 0.02"></a-text>
+                <a-text id="hud-mode-label" value="STATUS: OFFLINE" font="monoid" color="#ff2a6d" width="2.8" align="left" position="-0.95 -0.15 0.02"></a-text>
+                
+                <a-entity position="0 -0.38 0.01">
+                    <a-plane id="hud-bar-back" width="2.0" height="0.08" color="#020813" opacity="0.9"></a-plane>
+                    <a-plane id="hud-bar-fill" width="0.01" height="0.08" color="#00e5ff" position="-1.0 0 0.005" pivot="-1.0 0 0"></a-plane>
+                </a-entity>
+            </a-entity>
+        </a-entity>
+
+        <!-- ============================================== -->
+        <!-- KONTROL UTAMA (Tombol Melayang)                -->
+        <!-- ============================================== -->
+        <!-- Tombol diperkecil dan ditaruh sejauh jangkauan tangan (-1.2m) -->
+        <a-entity id="menu-trigger" position="0.4 0.7 -1.2" class="clickable" rotation="-15 -10 0" scale="0.3 0.3 0.3"
+                  geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
+                  onclick="toggleCommandPanels()"
+                  animation__hover="property: scale; startEvents: mouseenter; to: 0.32 0.32 0.32; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 0.3 0.3 0.3; dur: 150">
+            <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
+            <a-text id="btn-text" value="OPEN COMMAND" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
+        </a-entity>
+
+        <a-entity id="explode-trigger" position="-0.4 0.7 -1.2" class="clickable" rotation="-15 10 0" scale="0.3 0.3 0.3"
+                  geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
+                  onclick="toggleExplodeView()"
+                  animation__hover="property: scale; startEvents: mouseenter; to: 0.32 0.32 0.32; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 0.3 0.3 0.3; dur: 150">
+            <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
+            <a-text id="explode-text" value="EXPLODED VIEW" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
+        </a-entity>
+
+        <!-- ============================================== -->
         <!-- UI PANELS (DASHBOARD SCADA)                    -->
         <!-- ============================================== -->
         <a-entity id="panel-group" visible="false">
@@ -128,3 +248,7 @@
             </a-entity>
 
         </a-entity>
+            
+    </a-scene>
+</body>
+</html>
