@@ -14,10 +14,10 @@
 </head>
 <body>
     <!-- 
-      webxr="optionalFeatures: hand-tracking, local-floor;" wajib ada untuk Quest 3
-      system-monitor bertugas menghitung FPS
+      PERBAIKAN: Menambahkan 'requiredFeatures: local-floor' dan memastikan
+      'referenceSpaceType: local-floor' agar pelacakan ruang 6-DoF aktif di Quest 3.
     -->
-<a-scene cursor="rayOrigin: mouse" webxr="referenceSpaceType: local-floor; optionalFeatures: hand-tracking;" system-monitor>
+    <a-scene cursor="rayOrigin: mouse" webxr="referenceSpaceType: local-floor; requiredFeatures: local-floor; optionalFeatures: hand-tracking;" system-monitor>
         
         <!-- ============================================== -->
         <!-- ASSET MANAGEMENT                               -->
@@ -38,8 +38,8 @@
         
         <!-- Pencahayaan (ID dibutuhkan untuk efek Red Alert) -->
         <a-light id="ambient-light" type="ambient" color="#333"></a-light>
-        <a-light id="point-light-1" type="point" intensity="2.0" color="#00e5ff" position="0 6 2"></a-light>
-        <a-light id="point-light-2" type="point" intensity="1.0" color="#ff2a6d" position="0 2 -8"></a-light>
+        <a-light id="point-light-1" type="point" intensity="2.0" color="#00e5ff" position="0 3 1"></a-light>
+        <a-light id="point-light-2" type="point" intensity="1.0" color="#ff2a6d" position="0 1.5 -2"></a-light>
 
         <!-- ============================================== -->
         <!-- VR CAMERA & HAND TRACKING RIG                  -->
@@ -55,8 +55,8 @@
             </a-camera>
 
             <!-- Controller Biasa (Sinar Laser Oculus) -->
-            <a-entity laser-controls="hand: left" raycaster="objects: .clickable, .draggable; far: 20" line="color: #ff2a6d; opacity: 0.7"></a-entity>
-            <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 20" line="color: #00e5ff; opacity: 0.7"></a-entity>
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable, .draggable; far: 5" line="color: #ff2a6d; opacity: 0.7"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable, .draggable; far: 5" line="color: #00e5ff; opacity: 0.7"></a-entity>
 
             <!-- Pelacakan Tangan Murni Quest 3 (Tanpa Controller) -->
             <a-entity hand-tracking-controls="hand: left"></a-entity>
@@ -68,16 +68,16 @@
         <!-- DIGITAL TWIN ENVIRONMENT                       -->
         <!-- ============================================== -->
         
-        <!-- Meja Penopang (bun.glb) -->
-        <a-entity id="meja-bundar" position="0 1 -10.2" scale="0.66 0.66 0.66"
+        <!-- PERBAIKAN POSISI: Meja Penopang dipindah ke jarak 1.5 meter di depan (Z=-1.5) dan direndahkan (Y=0.4) -->
+        <a-entity id="meja-bundar" position="0 0.4 -1.5" scale="0.66 0.66 0.66"
                   gltf-model="#model-table"  
                   material="color: #111520; metalness: 0.4; roughness: 0.6"
                   spatial-projection>
         </a-entity>
 
-        <!-- Motor DC (Dilengkapi Audio Spasial dan Efek Percikan Api) -->
-        <a-entity id="motor-group" position="0 3.2 -9" scale="0.267 0.267 0.267" rotation="0 90 0" universal-rotate="speed: 1" spark-system="active: false"
-                  sound="src: #audio-motor; loop: true; volume: 0; positional: true; refDistance: 3; maxDistance: 15;">
+        <!-- PERBAIKAN POSISI: Motor DC diletakkan pas di atas meja (Z=-1.5, Y=1.2) -->
+        <a-entity id="motor-group" position="0 1.2 -1.5" scale="0.267 0.267 0.267" rotation="0 90 0" universal-rotate="speed: 1" spark-system="active: false"
+                  sound="src: #audio-motor; loop: true; volume: 0; positional: true; refDistance: 1; maxDistance: 5;">
             
             <a-entity id="motor-stator" class="draggable" 
                       position="0 0.4 0"
@@ -93,11 +93,11 @@
             </a-entity>
 
             <!-- HIGH-IMMERSION ADDITIONAL SURPRISES (KINETIC FLUX FIELD & FLOATING HUD) -->
-            <!-- 1. Holographic Kinetic Electromagnetic Flux Particle Field -->
             <a-entity field-flux></a-entity>
 
-            <!-- 2. Floating SCADA Mini Diagnostics HUD (Spatially bound to engine rotation & placement) -->
-            <a-entity id="holo-hud" position="0 1.5 1.8" rotation="0 0 0" scale="1 1 1">
+            <!-- Floating SCADA Mini Diagnostics HUD -->
+            <!-- Didekatkan relatif terhadap motor (Z=1.2 pada sumbu lokal motor) -->
+            <a-entity id="holo-hud" position="0 1.5 1.2" rotation="0 0 0" scale="1 1 1">
                 <!-- Glowing Outer Glass Panel Backing -->
                 <a-plane width="2.4" height="1.05" material="color: #030a16; opacity: 0.65; transparent: true; side: double"></a-plane>
                 <!-- Outer Cyber-Mesh Wireframe -->
@@ -130,22 +130,21 @@
         <!-- KONTROL UTAMA (Tombol Melayang)                -->
         <!-- ============================================== -->
         
-        <!-- 1. Tombol Panel Kanan -->
-        <a-entity id="menu-trigger" position="1.35 0.4 -3.5" class="clickable"
+        <!-- PERBAIKAN POSISI: Tombol didekatkan agar mudah diraih tangan (Z=-0.8) -->
+        <a-entity id="menu-trigger" position="0.7 0.9 -0.8" class="clickable" rotation="-15 -15 0" scale="0.6 0.6 0.6"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleCommandPanels()"
-                  animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
-                  animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
+                  animation__hover="property: scale; startEvents: mouseenter; to: 0.65 0.65 0.65; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 0.6 0.6 0.6; dur: 150">
             <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
             <a-text id="btn-text" value="OPEN COMMAND" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
         </a-entity>
 
-        <!-- 2. Tombol Mode Exploded View -->
-        <a-entity id="explode-trigger" position="-1.35 0.4 -3.5" class="clickable"
+        <a-entity id="explode-trigger" position="-0.7 0.9 -0.8" class="clickable" rotation="-15 15 0" scale="0.6 0.6 0.6"
                   geometry="primitive: box; width: 1.2; height: 0.4; depth: 0.1" material="color: #0a1128; opacity: 0.9"
                   onclick="toggleExplodeView()"
-                  animation__hover="property: scale; startEvents: mouseenter; to: 1.1 1.1 1.1; dur: 150"
-                  animation__leave="property: scale; startEvents: mouseleave; to: 1 1 1; dur: 150">
+                  animation__hover="property: scale; startEvents: mouseenter; to: 0.65 0.65 0.65; dur: 150"
+                  animation__leave="property: scale; startEvents: mouseleave; to: 0.6 0.6 0.6; dur: 150">
             <a-entity geometry="primitive: box; width: 1.25; height: 0.45; depth: 0.11" material="color: #00e5ff; wireframe: true" position="0 0 -0.01"></a-entity>
             <a-text id="explode-text" value="EXPLODED VIEW" font="exo2bold" align="center" color="#00e5ff" position="0 0 0.06" width="3"></a-text>
         </a-entity>
@@ -153,15 +152,17 @@
         <!-- ============================================== -->
         <!-- UI PANELS (DASHBOARD SCADA)                    -->
         <!-- ============================================== -->
+        <!-- PERBAIKAN POSISI PANEL: Jarak didekatkan (Z sekitar -1.5 sd -2.0) dan di-scale ulang -->
         <a-entity id="panel-group" visible="false">
             
             <!-- Animasi Cincin Kosmik -->
-            <a-entity position="0 2.5 -7" geometry="primitive: torus; radius: 4.5; radiusTubular: 0.02; segmentsTubular: 64" material="color: #00e5ff; opacity: 0.2; transparent: true; wireframe: true" animation="property: rotation; to: 0 0 360; loop: true; dur: 20000; easing: linear"></a-entity>
+            <a-entity position="0 1.5 -2.5" geometry="primitive: torus; radius: 2.5; radiusTubular: 0.01; segmentsTubular: 64" material="color: #00e5ff; opacity: 0.2; transparent: true; wireframe: true" animation="property: rotation; to: 0 0 360; loop: true; dur: 20000; easing: linear"></a-entity>
 
             <!-- --------------------------------------- -->
             <!-- PANEL TENGAH (Status Utama & Monitor)   -->
             <!-- --------------------------------------- -->
-            <a-entity position="0 2.5 -6" scale="1.4 1.4 1.4" animation="property: position; to: 0 2.55 -6; dir: alternate; dur: 3500; loop: true; easing: easeInOutSine">
+            <!-- Posisi Y di atas motor (1.8), jarak Z -1.8 -->
+            <a-entity position="0 2.2 -1.8" scale="0.4 0.4 0.4" animation="property: position; to: 0 2.22 -1.8; dir: alternate; dur: 3500; loop: true; easing: easeInOutSine">
                 <a-entity geometry="primitive: plane; width: 6.4; height: 5.4" sci-fi-panel="width: 6.4; height: 5.4; diagonal: false" position="0 -0.5 -0.05"></a-entity>
                 <!-- Watermark Mega Mendung -->
                 <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="6.4" height="5.4" opacity="0.15" transparent="true"></a-image>
@@ -181,7 +182,7 @@
                     <a-text value="NET PING" font="exo2bold" color="#888888" align="center" width="2.2" position="0.35 0.75 0"></a-text>
                     <a-text id="xr-ping" value="0 ms" font="monoid" color="#00e5ff" align="center" width="4" position="0.35 0.55 0"></a-text>
 
-                    <!-- SYSTEM STATUS (Posisi Awal di Bawah FPS/Ping) -->
+                    <!-- SYSTEM STATUS -->
                     <a-text value="SYSTEM STATUS" font="exo2bold" color="#a0aec0" align="center" width="3.5" position="0 0.2 0"></a-text>
                     <a-text id="xr-status" value="OFFLINE" font="exo2bold" color="#ff2a6d" align="center" width="5.5" position="0 -0.1 0"></a-text>
                     
@@ -211,7 +212,8 @@
             <!-- --------------------------------------- -->
             <!-- PANEL KIRI (Mode & PID Tuning)          -->
             <!-- --------------------------------------- -->
-            <a-entity position="-8.5 2.5 -5.2" rotation="0 35 0" scale="1.3 1.3 1.3" animation="property: position; to: -8.5 2.55 -5.2; dir: alternate; dur: 3200; loop: true; easing: easeInOutSine">
+            <!-- Diputar 40 derajat dan ditaruh di sebelah kiri -->
+            <a-entity position="-1.8 1.5 -1.2" rotation="0 40 0" scale="0.38 0.38 0.38" animation="property: position; to: -1.8 1.52 -1.2; dir: alternate; dur: 3200; loop: true; easing: easeInOutSine">
                 <a-entity geometry="primitive: plane; width: 5.2; height: 5.8" sci-fi-panel="width: 5.2; height: 5.8; diagonal: true" position="0 -0.5 -0.05"></a-entity>
                 <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="5.2" height="5.8" opacity="0.15" transparent="true"></a-image>
                 
@@ -255,7 +257,8 @@
             <!-- --------------------------------------- -->
             <!-- PANEL KANAN (Data Analytics & CSV Export)-->
             <!-- --------------------------------------- -->
-            <a-entity position="8.5 2.5 -5.2" rotation="0 -35 0" scale="1.3 1.3 1.3" animation="property: position; to: 8.5 2.55 -5.2; dir: alternate; dur: 3800; loop: true; easing: easeInOutSine">
+            <!-- Diputar -40 derajat dan ditaruh di sebelah kanan -->
+            <a-entity position="1.8 1.5 -1.2" rotation="0 -40 0" scale="0.38 0.38 0.38" animation="property: position; to: 1.8 1.52 -1.2; dir: alternate; dur: 3800; loop: true; easing: easeInOutSine">
                 <a-entity geometry="primitive: plane; width: 5.2; height: 5.8" sci-fi-panel="width: 5.2; height: 5.8; diagonal: true" position="0 -0.5 -0.05"></a-entity>
                 <a-image src="#tex-mendung" position="0 -0.5 -0.04" width="5.2" height="5.8" opacity="0.15" transparent="true"></a-image>
                 
