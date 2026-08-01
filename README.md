@@ -8,7 +8,7 @@ Welcome to the **TEO-XR Command Center**, Next-Gen Web3D/WebXR industrial digita
 
 TEO-XR offers a responsive, high-end virtual laboratory and control cockpit, bringing hardware telemetry straight to the web browser:
 1. **Physical Sound Modeling**: Real-time synthesized spatial acoustics and audio engines that adjust pitch, frequency curves, lowpass filtration, and volume dynamically using simulated motor speed (RPM).
-2. **Interactive 3D Digital Twin**: Built on A-Frame and Three.js with highly optimized GLTF assets (`stator.glb`, `rotor.glb`, `bun.glb`) featuring reflective, realistic metallic finishes.
+2. **Interactive 3D Digital Twin**: Built on A-Frame and Three.js with highly optimized GLTF assets featuring reflective, realistic metallic finishes.
 3. **Telemetry & Real-Time Diagnostics**:
    - Spatially bound **Diagnostics HUD Panel** displaying live parameters like Velocity, Current, Temperature, Torque, and Efficiency.
    - Dynamic **Heatmap Shading Component** that shifts stator color from technical gray to extreme thermal warning orange-red when overheating is detected.
